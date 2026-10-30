@@ -1,0 +1,16 @@
+# Service ClusterIP : IP virtuelle stable + load balancing entre les pods "Ready" de l'API.
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kubesentinel.fullname" . }}-api
+  labels:
+    {{- include "kubesentinel.labels" (dict "ctx" . "component" "api") | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "kubesentinel.selectorLabels" (dict "ctx" . "component" "api") | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.api.service.port }}
+      # Port nommé : si le port du conteneur change, le Service suit sans modification
+      targetPort: http

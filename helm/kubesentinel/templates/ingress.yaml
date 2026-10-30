@@ -1,0 +1,35 @@
+{{- if .Values.ingress.enabled }}
+# Point d'entrée HTTP unique, routage par chemin :
+#   /api/... → Service de l'API      / → Service du frontend
+# Le navigateur ne voit qu'une seule origine : pas de CORS à gérer.
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: {{ include "kubesentinel.fullname" . }}
+  labels:
+    {{- include "kubesentinel.labels" (dict "ctx" . "component" "ingress") | nindent 4 }}
+spec:
+  ingressClassName: {{ .Values.ingress.className }}
+  rules:
+    - http:
+        # Le chemin le plus long l'emporte : /api est testé avant /
+        paths:
+          - path: /api
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "kubesentinel.fullname" . }}-api
+                port:
+                  name: http
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: {{ include "kubesentinel.fullname" . }}-frontend
+                port:
+                  name: http
+      {{- /* host n'est ajouté que s'il est défini : vide = tous les hôtes */}}
+      {{- with .Values.ingress.host }}
+      host: {{ . | quote }}
+      {{- end }}
+{{- end }}

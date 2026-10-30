@@ -1,0 +1,15 @@
+# Configuration NON sensible de l'API, injectée en variables d'environnement.
+# Le mot de passe, lui, vient du Secret (voir api-deployment.yaml).
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "kubesentinel.fullname" . }}-api
+  labels:
+    {{- include "kubesentinel.labels" (dict "ctx" . "component" "api") | nindent 4 }}
+data:
+  # Nom du Service PostgreSQL = nom DNS résolu par CoreDNS dans le namespace
+  DB_HOST: {{ include "kubesentinel.postgresql.fullname" . }}
+  # Une ConfigMap ne contient que des chaînes : quote évite que 5432 soit lu comme un entier
+  DB_PORT: {{ .Values.postgresql.port | quote }}
+  DB_NAME: {{ .Values.postgresql.auth.database | quote }}
+  DB_USER: {{ .Values.postgresql.auth.username | quote }}

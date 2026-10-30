@@ -1,0 +1,14 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: {{ include "kubesentinel.fullname" . }}-frontend
+  labels:
+    {{- include "kubesentinel.labels" (dict "ctx" . "component" "frontend") | nindent 4 }}
+spec:
+  type: ClusterIP
+  selector:
+    {{- include "kubesentinel.selectorLabels" (dict "ctx" . "component" "frontend") | nindent 4 }}
+  ports:
+    - name: http
+      port: {{ .Values.frontend.service.port }}
+      targetPort: http

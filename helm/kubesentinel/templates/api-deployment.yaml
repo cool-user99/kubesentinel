@@ -1,0 +1,81 @@
+{{- $api := .Values.api }}
+apiVersion: apps/v1
+kind: Deployment
+metadata:
+  name: {{ include "kubesentinel.fullname" . }}-api
+  labels:
+    {{- include "kubesentinel.labels" (dict "ctx" . "component" "api") | nindent 4 }}
+spec:
+  replicas: {{ $api.replicaCount }}
+  selector:
+    matchLabels:
+      {{- include "kubesentinel.selectorLabels" (dict "ctx" . "component" "api") | nindent 6 }}
+  template:
+    metadata:
+      labels:
+        {{- include "kubesentinel.labels" (dict "ctx" . "component" "api") | nindent 8 }}
+      annotations:
+        # Les variables d'environnement sont figées au démarrage du pod : si la ConfigMap
+        # change, ce hash change aussi, ce qui modifie le pod template et déclenche un rolling update.
+        checksum/config: {{ include (print $.Template.BasePath "/api-configmap.yaml") . | sha256sum }}
+    spec:
+      # L'API n'appelle pas l'API Kubernetes : pas de jeton de ServiceAccount dans le pod
+      automountServiceAccountToken: false
+      securityContext:
+        # Doit correspondre au USER 10001 du Dockerfile
+        runAsNonRoot: true
+        runAsUser: 10001
+        runAsGroup: 10001
+        seccompProfile:
+          type: RuntimeDefault
+      containers:
+        - name: api
+          image: "{{ $api.image.repository }}:{{ $api.image.tag }}"
+          imagePullPolicy: {{ $api.image.pullPolicy }}
+          ports:
+            - name: http
+              containerPort: {{ $api.containerPort }}
+          # Toutes les clés de la ConfigMap deviennent des variables d'environnement
+          envFrom:
+            - configMapRef:
+                name: {{ include "kubesentinel.fullname" . }}-api
+          env:
+            # Même Secret que PostgreSQL : un seul endroit pour le mot de passe
+            - name: DB_PASSWORD
+              valueFrom:
+                secretKeyRef:
+                  name: {{ .Values.postgresql.auth.existingSecret }}
+                  key: {{ .Values.postgresql.auth.secretKey }}
+          # Readiness : retire le pod du Service tant que la base ne répond pas.
+          # timeoutSeconds > connect_timeout (3 s) de l'API pour obtenir un vrai 503, pas un timeout.
+          readinessProbe:
+            httpGet:
+              path: /ready
+              port: http
+            initialDelaySeconds: 5
+            periodSeconds: 10
+            timeoutSeconds: 5
+          # Liveness : redémarre le conteneur seulement si le processus ne répond plus
+          livenessProbe:
+            httpGet:
+              path: /health
+              port: http
+            initialDelaySeconds: 10
+            periodSeconds: 20
+            timeoutSeconds: 2
+            failureThreshold: 3
+          resources:
+            {{- toYaml $api.resources | nindent 12 }}
+          securityContext:
+            allowPrivilegeEscalation: false
+            readOnlyRootFilesystem: true
+            capabilities:
+              drop: ["ALL"]
+          volumeMounts:
+            # Système de fichiers en lecture seule : gunicorn a besoin d'un /tmp inscriptible
+            - name: tmp
+              mountPath: /tmp
+      volumes:
+        - name: tmp
+          emptyDir:
+            sizeLimit: 32Mi
