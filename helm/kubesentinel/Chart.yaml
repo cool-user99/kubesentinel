@@ -1,0 +1,8 @@
+apiVersion: v2
+name: kubesentinel
+description: Application 3-tiers (Angular, Flask, PostgreSQL) de la plateforme KubeSentinel
+type: application
+# Version du chart (packaging) : à incrémenter quand les templates changent
+version: 0.1.0
+# Version de l'application déployée (informative)
+appVersion: "0.1.0"

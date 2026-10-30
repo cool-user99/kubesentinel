@@ -1,0 +1,15 @@
+# Script SQL exécuté par l'image postgres au PREMIER démarrage uniquement
+# (quand le volume de données est vide). Le modifier n'a aucun effet sur une base existante.
+apiVersion: v1
+kind: ConfigMap
+metadata:
+  name: {{ include "kubesentinel.postgresql.fullname" . }}-initdb
+  labels:
+    {{- include "kubesentinel.labels" (dict "ctx" . "component" "postgresql") | nindent 4 }}
+data:
+  01-schema.sql: |
+    CREATE TABLE IF NOT EXISTS items (
+        id         SERIAL PRIMARY KEY,
+        name       VARCHAR(100) NOT NULL,
+        created_at TIMESTAMPTZ  NOT NULL DEFAULT now()
+    );

@@ -1,0 +1,69 @@
+# Valeurs par défaut du chart KubeSentinel.
+# Surcharge : helm install ... -f mes-values.yaml  ou  --set api.replicaCount=3
+
+api:
+  replicaCount: 2
+  image:
+    # Phase 1 : image locale importée dans k3d. Phase 2 : ghcr.io/<user>/kubesentinel-api
+    repository: kubesentinel-api
+    tag: "0.1.0"
+    pullPolicy: IfNotPresent
+  containerPort: 8000
+  service:
+    port: 80
+  resources:
+    requests:
+      cpu: 50m
+      memory: 64Mi
+    limits:
+      cpu: 250m
+      memory: 192Mi
+
+frontend:
+  replicaCount: 1
+  image:
+    repository: kubesentinel-frontend
+    tag: "0.1.0"
+    pullPolicy: IfNotPresent
+  containerPort: 8080
+  service:
+    port: 80
+  resources:
+    requests:
+      cpu: 10m
+      memory: 16Mi
+    limits:
+      cpu: 100m
+      memory: 64Mi
+
+ingress:
+  enabled: true
+  # Contrôleur Ingress fourni par k3s
+  className: traefik
+  # Vide = accepte tous les hôtes (http://localhost:8081)
+  host: ""
+
+postgresql:
+  image:
+    repository: postgres
+    tag: "17.11-alpine"
+    pullPolicy: IfNotPresent
+  port: 5432
+  auth:
+    database: kubesentinel
+    username: kubesentinel
+    # Le mot de passe n'est JAMAIS dans ce fichier : le chart lit un Secret existant.
+    # Phase 1 : créé avec kubectl. Phase 4 : créé par un SealedSecret.
+    existingSecret: kubesentinel-db
+    secretKey: password
+  persistence:
+    size: 1Gi
+    # Vide = StorageClass par défaut du cluster (local-path sur k3d)
+    storageClass: ""
+  resources:
+    requests:
+      cpu: 100m
+      memory: 128Mi
+    limits:
+      cpu: 500m
+      memory: 384Mi
