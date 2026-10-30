@@ -1,0 +1,8 @@
+# Fins de ligne LF partout : les fichiers partent dans des conteneurs Linux.
+# Prioritaire sur core.autocrlf de chaque machine.
+* text=auto eol=lf
+
+# Fichiers binaires : jamais de conversion
+*.png binary
+*.jpg binary
+*.ico binary

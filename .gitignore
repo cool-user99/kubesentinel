@@ -1,0 +1,21 @@
+# Python
+__pycache__/
+*.pyc
+.pytest_cache/
+.venv/
+
+# Node / Angular (complète app/frontend/.gitignore)
+node_modules/
+dist/
+.angular/
+
+# Secrets et fichiers locaux : ne jamais committer
+.env
+*.key
+kubeconfig*
+
+# Éditeurs / OS
+.vscode/
+.idea/
+Thumbs.db
+.DS_Store
