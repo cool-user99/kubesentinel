@@ -5,8 +5,8 @@ api:
   replicaCount: 2
   image:
     # Phase 1 : image locale importée dans k3d. Phase 2 : ghcr.io/<user>/kubesentinel-api
-    repository: kubesentinel-api
-    tag: "0.1.0"
+    repository: ghcr.io/cool-user99/kubesentinel-api
+    tag: "sha-a56e39f"
     pullPolicy: IfNotPresent
   containerPort: 8000
   service:
@@ -18,12 +18,11 @@ api:
     limits:
       cpu: 250m
       memory: 192Mi
-
 frontend:
   replicaCount: 1
   image:
-    repository: kubesentinel-frontend
-    tag: "0.1.0"
+    repository: ghcr.io/cool-user99/kubesentinel-frontend
+    tag: "sha-a56e39f"
     pullPolicy: IfNotPresent
   containerPort: 8080
   service:
@@ -35,14 +34,12 @@ frontend:
     limits:
       cpu: 100m
       memory: 64Mi
-
 ingress:
   enabled: true
   # Contrôleur Ingress fourni par k3s
   className: traefik
   # Vide = accepte tous les hôtes (http://localhost:8081)
   host: ""
-
 postgresql:
   image:
     repository: postgres
