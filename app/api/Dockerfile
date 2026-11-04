@@ -1,12 +1,12 @@
 # --- Étape 1 : builder — installe les dépendances dans un venv isolé
-FROM python:3.12.16-slim-bookworm AS builder
+FROM python:3.12.16-slim-trixie AS builder
 RUN python -m venv /opt/venv
 ENV PATH="/opt/venv/bin:$PATH"
 COPY requirements.txt .
 RUN pip install --no-cache-dir -r requirements.txt
 
 # --- Étape 2 : runtime — uniquement le venv et le code, exécuté en non-root
-FROM python:3.12.16-slim-bookworm
+FROM python:3.12.16-slim-trixie
 ENV PATH="/opt/venv/bin:$PATH" \
     PYTHONDONTWRITEBYTECODE=1 \
     PYTHONUNBUFFERED=1

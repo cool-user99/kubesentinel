@@ -8,7 +8,10 @@ COPY . .
 RUN npm run build
 
 # --- Étape 2 : runtime — nginx non-root (UID 101) qui sert les fichiers statiques
-FROM nginxinc/nginx-unprivileged:1.30.0-alpine
+FROM nginxinc/nginx-unprivileged:1.30.6-alpine3.24
+# Correctifs Alpine publiés après la construction de l'image de base (root requis, USER 101 plus bas)
+USER 0
+RUN apk upgrade --no-cache
 COPY nginx.conf /etc/nginx/conf.d/default.conf
 COPY --from=builder /build/dist/frontend/browser /usr/share/nginx/html
 USER 101
